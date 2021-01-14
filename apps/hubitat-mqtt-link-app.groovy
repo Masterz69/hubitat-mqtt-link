@@ -921,7 +921,7 @@ def inputHandler(evt) {
 def pingState() {
     if(pausePingState) {
         debug("[pingState] is Paused")
-		return
+        return
     } 
 	settings.selectedDevices.each { device ->
         def deviceId = device.id
@@ -936,18 +936,18 @@ def pingState() {
                 if (cap == capability.name) {
                     found = true
                     return true
-                }    
+                }
                 return false 
             }
 
             if (found) {
                 capability.getAttributes().each { attribute ->
-        
+            
                     def attributeName = upperCamel(attribute.toString())
                     def currentValue = device."current${attributeName}"
-        
+            
                     debug("[pingState] Sending state refresh: ${device}:${attribute}:${currentValue}")
-                
+                    
                     def json = new JsonOutput().toJson([
                         path: "/push",
                         body: [
