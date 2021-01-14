@@ -89,7 +89,7 @@ def capabilitiesPage() {
             // Build normalized list of selected device names 
             def selectedList = []
             selectedDevices.each {
-                device -> selectedList.add(normalizeId(device))
+                device -> selectedList.add(device.id)
             }
             state.selectedList = selectedList
 
@@ -105,7 +105,7 @@ def capabilitiesPage() {
             // Build normalized list of selected device names 
             def selectedLookup = [:]
             selectedDevices.each {
-                device -> selectedLookup.put(normalizeId(device), device.getDisplayName())
+                device -> selectedLookup.put(device.id, device.getDisplayName())
             }
             state.selectedLookup = selectedLookup
             
@@ -126,7 +126,7 @@ def capabilitiesPage() {
                 paragraph "<div class=\"pill\">${device.getDisplayName()}</div>"
 
                 input (
-                    name: normalizeId, 
+                    name: device.id, 
                     type: "enum",
                     title: "",
                     options: selectedCapabilities,
@@ -782,9 +782,8 @@ def initialize() {
     ]
     
     settings.selectedDevices.each { device ->
-        def normalizeId = normalizeId(device)
         
-        settings[normalizeId].each { capability ->
+        settings[device.id].each { capability ->
             def capabilityCamel = lowerCamel(capability)
             def capabilitiesMap = CAPABILITY_MAP[capabilityCamel]
 
@@ -796,7 +795,7 @@ def initialize() {
 				attributes[capabilityCamel] = []
 			}
             
-            attributes[capabilityCamel].push(normalizeId)
+            attributes[capabilityCamel].push(device.id)
         }
     }
     
@@ -918,7 +917,8 @@ def inputHandler(evt) {
 
 def pingState() {
     settings.selectedDevices.each { device ->
-        def deviceId = normalizeId(device)
+        def deviceId = device.id
+        def normalizedId = normalizeId(device)
         def attributes = device.getSupportedAttributes()
         def capabilities = device.getCapabilities()
 
@@ -944,7 +944,7 @@ def pingState() {
                     def json = new JsonOutput().toJson([
                         path: "/push",
                         body: [
-                            normalizedId: deviceId,
+                            normalizedId: normalizedId,
                             name: attribute.name,
                             value: currentValue.toString(),
                             pingRefresh: true
