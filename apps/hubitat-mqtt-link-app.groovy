@@ -67,6 +67,9 @@ preferences {
                 submitOnChange: false
             )
     	}
+        section("App Control") {
+            input "pausePingState", "bool", title: "Pause Periodic Sending", defaultValue:false, submitOnChange:true
+        }
         section("Debug Settings") {
             input("debugLogging", "bool", title: "Enable debug logging", required: false, default:false) 
         }
@@ -782,7 +785,6 @@ def initialize() {
     ]
     
     settings.selectedDevices.each { device ->
-        
         settings[device.id].each { capability ->
             def capabilityCamel = lowerCamel(capability)
             def capabilitiesMap = CAPABILITY_MAP[capabilityCamel]
@@ -791,11 +793,11 @@ def initialize() {
 			    subscribe(device, attribute, inputHandler)
 		    }
             
-            if (!attributes.containsKey(low)) {
+            if (!attributes.containsKey(capabilityCamel)) {
 				attributes[capabilityCamel] = []
 			}
-            
-            attributes[capabilityCamel].push(device.id)
+
+            attributes[capabilityCamel].push(normalizeId(device))
         }
     }
     
@@ -916,42 +918,46 @@ def inputHandler(evt) {
 }
 
 def pingState() {
-    settings.selectedDevices.each { device ->
-        def deviceId = device.id
-        def normalizedId = normalizeId(device)
-        def attributes = device.getSupportedAttributes()
-        def capabilities = device.getCapabilities()
+    if(pausePingState) {
+        debug("[pingState] is Paused")
+    } else {
+        settings.selectedDevices.each { device ->
+            def deviceId = device.id
+            def normalizedId = normalizeId(device)
+            def attributes = device.getSupportedAttributes()
+            def capabilities = device.getCapabilities()
 
-        capabilities.each { capability ->
+            capabilities.each { capability ->
             
-            def found = false
-            settings[deviceId].find { cap ->
-                if (cap == capability.name) {
-                    found = true
-                    return true
+                def found = false
+                settings[deviceId].find { cap ->
+                    if (cap == capability.name) {
+                        found = true
+                        return true
+                    }    
+                    return false 
                 }
-                return false 
-            }
 
-            if (found) {
-                capability.getAttributes().each { attribute ->
+                if (found) {
+                    capability.getAttributes().each { attribute ->
             
-                    def attributeName = upperCamel(attribute.toString())
-                    def currentValue = device."current${attributeName}"
+                        def attributeName = upperCamel(attribute.toString())
+                        def currentValue = device."current${attributeName}"
             
-                    debug("[pingState] Sending state refresh: ${device}:${attribute}:${currentValue}")
+                        debug("[pingState] Sending state refresh: ${device}:${attribute}:${currentValue}")
                     
-                    def json = new JsonOutput().toJson([
-                        path: "/push",
-                        body: [
-                            normalizedId: normalizedId,
-                            name: attribute.name,
-                            value: currentValue.toString(),
-                            pingRefresh: true
-                        ]
-                    ])
+                        def json = new JsonOutput().toJson([
+                            path: "/push",
+                            body: [
+                                normalizedId: normalizedId,
+                                name: attribute.name,
+                                value: currentValue.toString(),
+                                pingRefresh: true
+                            ]
+                        ])
 
-                    mqttLink.deviceNotification(json)
+                        mqttLink.deviceNotification(json)
+                    }
                 }
             }
         }
