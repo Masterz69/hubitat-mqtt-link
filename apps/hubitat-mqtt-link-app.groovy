@@ -68,7 +68,7 @@ preferences {
             )
     	}
         section("App Control") {
-            input "pausePingState", "bool", title: "Pause Periodic Sending", defaultValue:false, submitOnChange:true
+            input("pausePingState", "bool", title: "Pause Periodic Sending", reqiured: false, default:false)
         }
         section("Debug Settings") {
             input("debugLogging", "bool", title: "Enable debug logging", required: false, default:false) 
