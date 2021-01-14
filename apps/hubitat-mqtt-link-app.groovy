@@ -109,7 +109,7 @@ def capabilitiesPage() {
             // Build normalized list of selected device names 
             def selectedLookup = [:]
             selectedDevices.each {
-                device -> selectedLookup.put(device.id, device.getDisplayName())
+                device -> selectedLookup.put(normalizeId(device), device.getDisplayName())
             }
             state.selectedLookup = selectedLookup
             
@@ -791,13 +791,11 @@ def initialize() {
 
             capabilitiesMap["attributes"].each { attribute ->
 			    subscribe(device, attribute, inputHandler)
-		    }
-            
-            if (!attributes.containsKey(capabilityCamel)) {
-				attributes[capabilityCamel] = []
-			}
-            
-            attributes[capabilityCamel].push(normalizeId(device))
+                if (!attributes.containsKey(capabilityCamel)) {
+                  attributes[attribute] = []
+                }
+                attributes[attribute].push(normalizeId(device))
+            }
         }
     }
     
@@ -853,8 +851,16 @@ def mqttLinkHandler(evt) {
     def selectedDevice = settings.selectedDevices.find { 
         device -> (device.displayName == deviceName)
     }
-    
-    if (selectedDevice && settings[normalizedId] && capability["attributes"].contains(attribute)) {
+
+    settings[selectedDevice.id].each{ selectedCapability ->
+        def capabilityCamel = lowerCamel(selectedCapability)
+        def capabilitiesMap = CAPABILITY_MAP[capabilityCamel]
+        if (capabilitiesMap["attributes"].contains(attribute)) {
+            capability = capabilitiesMap
+        }
+    }
+
+    if (selectedDevice && settings[selectedDevice.id] && capability["attributes"].contains(attribute)) {
         if (json.command == false) {
             if (selectedDevice.getSupportedCommands().any {it.name == "setStatus"}) {
                 debug("[mqttLinkHandler] Setting state: ${attribute} = ${json.value}")
