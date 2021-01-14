@@ -133,6 +133,8 @@ Follow the procedure for installing apps code on Hubitat and specify the followi
 
 _optional_
 
+* Pause Periodical Data feeding to MQTT Driver
+* Specify how often proceed with Periodical feed, in minutes
 * Enable debug logging - When ON the driver will log debug statements for troubleshooting
 
 #### Device Capabilities
@@ -420,6 +422,10 @@ Limited access to devices within each of these categories made it impossible to 
 
 ### Release Notes
 
+# Update on 2021/01/14
+* Added Pause possibility and time between Periodical feeding
+* Fixed publish/subscribe topic inconsistency - now they same for device capability
+* Fixed issue with Device name change - now capabilities settings "survive" after device name change
 # Update in Release 1.0.0
 * BREAKING CHANGES
 * Replace spaces in hub name with dashes to prevent MQTT topic with spaces in the name. `hub name` becomes `hub-name`
