@@ -69,6 +69,7 @@ preferences {
     	}
         section("App Control") {
             input("pausePingState", "bool", title: "Pause Periodic Sending", reqiured: false, default:false)
+            input("delayPingState", "short", title : "How often to send periodic reports, in minutes", defaultValue: "3", range: "1..30")
         }
         section("Debug Settings") {
             input("debugLogging", "bool", title: "Enable debug logging", required: false, default:false) 
@@ -758,7 +759,6 @@ def installed() {
 	debug("[installed] Installed with settings: ${settings}")
 
 	runEvery15Minutes(initialize)
-	runEvery1Minute(pingState)
     
 	initialize()
 }
@@ -812,6 +812,7 @@ def initialize() {
 	subscribe(mqttLink, "message", mqttLinkHandler)
 
     updateSubscription(attributes)
+    schedule("0 0/${delayPingState} * * * ?", pingState)
 }
 
 // Update the mqttLink's subscription
