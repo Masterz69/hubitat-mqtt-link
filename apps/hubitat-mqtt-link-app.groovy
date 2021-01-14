@@ -796,7 +796,7 @@ def initialize() {
             if (!attributes.containsKey(capabilityCamel)) {
 				attributes[capabilityCamel] = []
 			}
-
+            
             attributes[capabilityCamel].push(normalizeId(device))
         }
     }
@@ -930,7 +930,7 @@ def pingState() {
         def capabilities = device.getCapabilities()
 
         capabilities.each { capability ->
-        
+            
             def found = false
             settings[deviceId].find { cap ->
                 if (cap == capability.name) {
