@@ -30,7 +30,7 @@
 import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
 
-public static String version() { return "v1.1.5" }
+public static String version() { return "v1.2.0" }
 public static String rootTopic() { return "hubitat" }
 
 //hubitat / {hub-name} / { device-name } / { device-capability } / STATE
@@ -46,6 +46,7 @@ metadata {
         	iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Connections/Cat-Connections@3x.png"
         ) {
 		capability "Notification"
+        attribute  "TopicPrefix", "string"
 
 		preferences {
 			input(
@@ -109,10 +110,13 @@ metadata {
 
 void initialize() {
     debug("Initializing driver...")
-    
+
+    state.TopicPrefix = getTopicPrefix()
+    sendEvent(name: "TopicPrefix", value: getTopicPrefix())
+
     try {   
         interfaces.mqtt.connect(getBrokerUri(),
-                           "hubitat_${getHubId()}", 
+                           "${rootTopic()}_${getHubId()}", 
                            settings?.brokerUser, 
                            settings?.brokerPassword, 
                            lastWillTopic: "${getTopicPrefix()}LWT",
@@ -285,7 +289,7 @@ def publishMqtt(topic, payload, qos = 0, retained = false) {
 // ========================================================
 
 def connected() {
-    info("[connected] Connected to broker")
+    debug("[connected] Connected to broker")
     sendEvent (name: "connectionState", value: "connected")
     announceLwtStatus("online")
 }

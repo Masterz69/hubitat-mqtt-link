@@ -31,7 +31,7 @@ import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
 import groovy.transform.Field
 
-public static String version() { return "v1.1.5" }
+public static String version() { return "v1.2.0" }
 //public static String rootTopic() { return "hubitat" }
 
 definition(
@@ -145,8 +145,8 @@ def capabilitiesPage() {
                     multiple: true,
                     submitOnChange: false
                 )
-//                paragraph "<div><strong style=\"font-size: 85%;\">Topic </strong><div class=\"label\">${getTopicPrefix()}${normalizeId}</div></div><hr />"
-                paragraph "<div><strong style=\"font-size: 85%;\">Topic </strong><div class=\"label\">/MQTT_Driver_TopicPrefix/${normalizeId}</div></div><hr />"
+                paragraph "<div><strong style=\"font-size: 85%;\">Topic </strong><div class=\"label\">${getTopicPrefix()}${normalizeId}</div></div><hr />"
+//                paragraph "<div><strong style=\"font-size: 85%;\">Topic </strong><div class=\"label\">/MQTT_Driver_TopicPrefix/${normalizeId}</div></div><hr />"
             }
         }
     }
@@ -1000,9 +1000,9 @@ def getDeviceObj(id) {
     return found
 }
 
-//def getTopicPrefix() {
-//    return mqttLink.getTopicPrefix()
-//}
+def getTopicPrefix() {
+    return mqttLink.latestValue("TopicPrefix")
+}
 
 //def getHubId() {
 //    def hub = location.hubs[0]

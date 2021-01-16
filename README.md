@@ -26,10 +26,10 @@ Following are details about the topic format and messages used to communicate to
 The MQTT topics apply the following pattern.
 * prefix - Hardcoded to `hubitat`
 * hub name & id - Combines the hub location name with the hub id: 'name` or `name-id`
-^^ configuring in MQTT Link Driver
 * normalized device id - Combines the device name and id: `name`, `id-name` or `name-id`
 * normalized attrubute - Data attibute name, also used to subscribe
-^^ configuring in MQTT Link App
+
+Prefix & hub name/id defined in Link Driver and passed to Link App for user convinience.
 
 Examples: `hubitat/home/sensor-water/temperature` `hubitat/home-000d/hue-color-lamp-1-738/switch`
 
@@ -425,9 +425,11 @@ Limited access to devices within each of these categories made it impossible to 
 
 ### Release Notes
 
+#Update in Version 1.2.0
+* TopicPrefix defined in Driver & passed to App
 #Update in Version 1.1.5
 * MQTT Driver: fixed mismatch atribute/driver in subscriptions
-* MQTT App: switchable option - to subscribe or not on published topics
+* MQTT App: switchable option - to subscribe or not on self-published topics
 #Update in Version 1.1.2
 * Naming features in MQTT Link Driver: use or not hubID in topic name
 * Naming features in MQTT Link App: use or not deviceID in topic name, as suffix or prefix
