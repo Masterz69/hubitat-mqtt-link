@@ -2,7 +2,8 @@
 
 ***System to share and control Hubitat Elevation device states in MQTT.***
 
-MQTT Link is a derivative of  [MQTT Bridge](https://github.com/jeubanks/hubitat-mqtt-bridge) for Hubitat released by jeubanks who derived it from [MQTT Bridge](https://github.com/stjohnjohnson/smartthings-mqtt-bridge) for SmartThings by stjohnjohnson.
+MQTT Link is a derivative of [MQTT Link] (https://github.com/mydevbox/hubitat-mqtt-link) by mydevbox.
+Previous parent Releases can be found at [MQTT Bridge](https://github.com/jeubanks/hubitat-mqtt-bridge) for Hubitat released by jeubanks who derived it from [MQTT Bridge](https://github.com/stjohnjohnson/smartthings-mqtt-bridge) for SmartThings by stjohnjohnson.
 
 Each of the prior MQTT Bridge releases set out to fill a gap in SmartThings and Hubitat as each platform lacked a native MQTT client for which to interface with an MQTT broker. Both releases relied upon a separate, self-hosted nodejs _bridge_ app that ran outside of
 
@@ -24,11 +25,13 @@ Following are details about the topic format and messages used to communicate to
 
 The MQTT topics apply the following pattern.
 * prefix - Hardcoded to `hubitat`
-* hub name & id - Combines the hub location name with the hub id
-* normalized device id - Combines the device name and id
-* normalized capability - Provides
+* hub name & id - Combines the hub location name with the hub id: 'name` or `name-id`
+^^ configuring in MQTT Link Driver
+* normalized device id - Combines the device name and id: `name`, `id-name` or `name-id`
+* normalized attrubute - Data attibute name, also used to subscribe
+^^ configuring in MQTT Link App
 
-Example: `hubitat/home-000d/hue-color-lamp-1-738/switch`
+Examples: `hubitat/home/sensor-water/temperature` `hubitat/home-000d/hue-color-lamp-1-738/switch`
 
 ### Messages
 
@@ -422,8 +425,17 @@ Limited access to devices within each of these categories made it impossible to 
 
 ### Release Notes
 
+#Update in Version 1.1.5
+* MQTT Driver: fixed mismatch atribute/driver in subscriptions
+* MQTT App: switchable option - to subscribe or not on published topics
+#Update in Version 1.1.2
+* Naming features in MQTT Link Driver: use or not hubID in topic name
+* Naming features in MQTT Link App: use or not deviceID in topic name, as suffix or prefix
+* Applicable for all topics, not separate one
+# Update in Version 1.1.1
+* Separate verioning started, see previous changes
 # Update on 2021/01/14
-* Added Pause possibility and time between Periodical feeding
+* Added Pause possibility and set time (in minutes) between Periodical feeding
 * Fixed publish/subscribe topic inconsistency - now they same for device capability
 * Fixed issue with Device name change - now capabilities settings "survive" after device name change
 # Update in Release 1.0.0

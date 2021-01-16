@@ -30,7 +30,7 @@
 import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
 
-public static String version() { return "v1.0.0" }
+public static String version() { return "v1.1.5" }
 public static String rootTopic() { return "hubitat" }
 
 //hubitat / {hub-name} / { device-name } / { device-capability } / STATE
@@ -38,8 +38,8 @@ public static String rootTopic() { return "hubitat" }
 metadata {
         definition(
         	name: "MQTT Link Driver",
-        	namespace: "mydevbox",
-        	author: "Chris Lawson, et al",
+        	namespace: "Masterz69",
+        	author: "Igors Micko, et al",
         	description: "A link between MQTT broker and MQTT Link app",
         	iconUrl: "https://s3.amazonaws.com/smartapp-icons/Connections/Cat-Connections.png",
         	iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Connections/Cat-Connections@2x.png",
@@ -88,6 +88,7 @@ metadata {
                 required: false, 
                 default: false
             )
+            input("namingHubID", "bool", title: "Add Hub ID in MQTT topic name", reqiured: true, default:false, submitOnChange: false)
             input(
                 name: "debugLogging", 
                 type: "bool", 
@@ -198,12 +199,22 @@ def deviceSubscribe(message) {
         unsubscribe("#")
     }
     
+//    message.body.devices.each { key, capability ->
+//		capability.each { attribute ->
+//            def normalizedAttrib = normalize(attribute)
+//            def topic = "${normalizedAttrib}/${key}".toString()
+//            
+//            debug("[deviceSubscribe] topic: ${topic} attribute: ${attribute}")
+//            subscribe(topic)
+//		}
+//	}
+    debug("${message}")
     message.body.devices.each { key, capability ->
-		capability.each { attribute ->
-            def normalizedAttrib = normalize(attribute)
-            def topic = "${normalizedAttrib}/${key}".toString()
+		capability.each { device ->
+            def normalizedDevice = normalize(device)
+            def topic = "${normalizedDevice}/${key}".toString()
             
-            debug("[deviceSubscribe] topic: ${topic} attribute: ${attribute}")
+            debug("[deviceSubscribe] topic: ${topic} device: ${normalizedDevice} capability: ${key}")
             subscribe(topic)
 		}
 	}
@@ -307,7 +318,11 @@ def getBrokerUri() {
 def getHubId() {
     def hub = location.hubs[0]
     def hubNameNormalized = normalize(hub.name)
-    return "${hubNameNormalized}-${hub.hardwareID}".toLowerCase()
+    if (namingHubID == true) {
+        return "${hubNameNormalized}-${hub.hardwareID}".toLowerCase()
+    } else {
+        return "${hubNameNormalized}".toLowerCase()
+    }
 }
 
 def getTopicPrefix() {

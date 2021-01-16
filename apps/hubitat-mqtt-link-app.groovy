@@ -31,13 +31,13 @@ import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
 import groovy.transform.Field
 
-public static String version() { return "v1.0.0" }
-public static String rootTopic() { return "hubitat" }
+public static String version() { return "v1.1.5" }
+//public static String rootTopic() { return "hubitat" }
 
 definition(
 	name: "MQTT Link",
-	namespace: "mydevbox",
-	author: "Chris Lawson, et al",
+	namespace: "Masterz69",
+	author: "Igors Micko, et al",
 	description: "A link between Hubitat device events and MQTT Link Driver",
 	iconUrl: "https://s3.amazonaws.com/smartapp-icons/Connections/Cat-Connections.png",
 	iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Connections/Cat-Connections@2x.png",
@@ -67,8 +67,16 @@ preferences {
                 submitOnChange: false
             )
     	}
+        section("Naming Control") {
+//            input("namingHubID", "bool", title: "Add Hub ID in MQTT topic name", reqiured: true, default:false, submitOnChange: false)
+            input("namingDeviceID", "bool", title : "Add Device ID in MQTT topic name", reqiured: true, default:false, submitOnChange: true)
+            if (namingDeviceID == true) {
+                input("namingDeviceIDplace","enum", title: "Selecte place of Device ID", multiple: false, required: true, options: ["suffix","prefix"], submitOnChange: false);
+            }
+        }
         section("App Control") {
-            input("pausePingState", "bool", title: "Pause Periodic Sending", reqiured: false, default:false)
+            input("pauseSubscribe", "bool", title: "Pause Subscribe on self topics", reqiured: true, default:false)
+            input("pausePingState", "bool", title: "Pause Periodic Sending", reqiured: true, default:false)
             input("delayPingState", "short", title : "How often to send periodic reports, in minutes", defaultValue: "3", range: "1..30")
         }
         section("Debug Settings") {
@@ -112,7 +120,7 @@ def capabilitiesPage() {
                 device -> selectedLookup.put(normalizeId(device), device.getDisplayName())
             }
             state.selectedLookup = selectedLookup
-            
+
             // List selected devices with capabilities chooser
             selectedDevices.sort{x -> x.getDisplayName()}.each { device ->
 
@@ -137,7 +145,8 @@ def capabilitiesPage() {
                     multiple: true,
                     submitOnChange: false
                 )
-                paragraph "<div><strong style=\"font-size: 85%;\">Topic </strong><div class=\"label\">${getTopicPrefix()}${normalizeId}</div></div><hr />"
+//                paragraph "<div><strong style=\"font-size: 85%;\">Topic </strong><div class=\"label\">${getTopicPrefix()}${normalizeId}</div></div><hr />"
+                paragraph "<div><strong style=\"font-size: 85%;\">Topic </strong><div class=\"label\">/MQTT_Driver_TopicPrefix/${normalizeId}</div></div><hr />"
             }
         }
     }
@@ -768,6 +777,7 @@ def updated() {
 
 	// Unsubscribe from all events
 	unsubscribe()
+    mqttLink.disconnect() // drops subscriptions
 
 	// Subscribe to stuff
 	initialize()
@@ -788,13 +798,15 @@ def initialize() {
         settings[device.id].each { capability ->
             def capabilityCamel = lowerCamel(capability)
             def capabilitiesMap = CAPABILITY_MAP[capabilityCamel]
+            def normalizedId = normalizeId(device)
 
             capabilitiesMap["attributes"].each { attribute ->
 			    subscribe(device, attribute, inputHandler)
-                if (!attributes.containsKey(capabilityCamel)) {
-                  attributes[attribute] = []
+
+                if (!attributes.containsKey(attribute)) {
+                    attributes[attribute] = []
                 }
-                attributes[attribute].push(normalizeId(device))
+                attributes[attribute].push(normalizedId)
             }
         }
     }
@@ -809,7 +821,9 @@ def initialize() {
 	// Subscribe to events from the mqttLink
 	subscribe(mqttLink, "message", mqttLinkHandler)
 
-    updateSubscription(attributes)
+    if (pauseSubscribe == false) {
+        updateSubscription(attributes)
+    }
     schedule("0 0/${delayPingState} * * * ?", pingState)
 }
 
@@ -963,7 +977,7 @@ def pingState() {
                             pingRefresh: true
                         ]
                     ])
-
+                    debug("${json}")
                     mqttLink.deviceNotification(json)
                 }
             }
@@ -986,15 +1000,23 @@ def getDeviceObj(id) {
     return found
 }
 
-def getHubId() {
-    def hub = location.hubs[0]
-    def hubNameNormalized = normalize(hub.name)
-    return "${hubNameNormalized}-${hub.hardwareID}".toLowerCase()
-}
+//def getTopicPrefix() {
+//    return mqttLink.getTopicPrefix()
+//}
 
-def getTopicPrefix() {
-    return "${rootTopic()}/${getHubId()}/"
-}
+//def getHubId() {
+//    def hub = location.hubs[0]
+//    def hubNameNormalized = normalize(hub.name)
+//    if (namingHubID == true) {
+//        return "${hubNameNormalized}-${hub.hardwareID}".toLowerCase()
+//    } else {
+//        return "${hubNameNormalized}".toLowerCase()
+//    }
+//}
+
+//def getTopicPrefix() {
+//    return "${rootTopic()}/${getHubId()}/"
+//}
 
 def upperCamel(str) {
     def c = str.charAt(0)
@@ -1012,7 +1034,15 @@ def normalize(name) {
 
 def normalizeId(name, id) {
     def normalizedName = normalize(name)
-    return "${normalizedName}-${id}".toString()
+    if (namingDeviceID == false) {
+        return "${normalizedName}".toString()
+    } else {
+        if (namingDeviceIDplace == "prefix") {
+            return "${id}-${normalizedName}".toString()
+        } else {
+            return "${normalizedName}-${id}".toString()
+        }
+    }
 }
 
 def normalizeId(device) {
