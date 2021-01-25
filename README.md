@@ -13,7 +13,7 @@ Since that time the Hubitat platform has introduced an MQTT client capable of in
 
 The MQTT Link project builds upon the methods established in the prior works by refactoring the Driver code to utilize the built-in Hubitat MQTT client and to make improvements to the App code.
 
-A big thanks to stjohnjohnson, jeubanks and those to blazed the trails to make this project possible.
+A big thanks to mydevbox, stjohnjohnson, jeubanks and those to blazed the trails to make this project possible.
 
 ## MQTT
 
@@ -25,7 +25,7 @@ Following are details about the topic format and messages used to communicate to
 
 The MQTT topics apply the following pattern.
 * prefix - Hardcoded to `hubitat`
-* hub name & id - Combines the hub location name with the hub id: 'name` or `name-id`
+* hub name & id - Combines the hub location name with the hub id: `name` or `name-id`
 * normalized device id - Combines the device name and id: `name`, `id-name` or `name-id`
 * normalized attrubute - Data attibute name, also used to subscribe
 
